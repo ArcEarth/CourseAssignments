@@ -1,0 +1,27 @@
+﻿生成启动时间为 2012/4/7 下午 2:26:41。
+     1>项目“I:\Erthanese.Arc\Documents\Visual Studio 2010\Projects\AI_EXP_8_NUM\AI_EXP_8_NUM\AI_EXP_8_NUM.vcxproj”在节点 2 上(build 个目标)。
+     1>InitializeBuildStatus:
+         正在对“Debug\AI_EXP_8_NUM.unsuccessfulbuild”执行 Touch 任务。
+       ClCompile:
+         G:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt 8Num.cpp
+         8Num.cpp
+     1>i:\erthanese.arc\documents\visual studio 2010\projects\ai_exp_8_num\ai_exp_8_num\8num.cpp(65): warning C4244: “参数”: 从“time_t”转换到“unsigned int”，可能丢失数据
+       ManifestResourceCompile:
+         所有输出均为最新。
+       Link:
+         G:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"I:\Erthanese.Arc\Documents\Visual Studio 2010\Projects\AI_EXP_8_NUM\Debug\AI_EXP_8_NUM.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\AI_EXP_8_NUM.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"I:\Erthanese.Arc\Documents\Visual Studio 2010\Projects\AI_EXP_8_NUM\Debug\AI_EXP_8_NUM.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"I:\Erthanese.Arc\Documents\Visual Studio 2010\Projects\AI_EXP_8_NUM\Debug\AI_EXP_8_NUM.lib" /MACHINE:X86 Debug\AI_EXP_8_NUM.exe.embed.manifest.res
+         Debug\state.obj
+         Debug\state.obj
+         Debug\8Num.obj
+     1>Debug\state.obj : warning LNK4042: 对象被多次指定；已忽略多余的指定
+     1>8Num.obj : error LNK2019: 无法解析的外部符号 "public: int __thiscall state::move(int)" (?move@state@@QAEHH@Z)，该符号在函数 "int __cdecl visit(class state,int,int,int *)" (?visit@@YAHVstate@@HHPAH@Z) 中被引用
+     1>8Num.obj : error LNK2019: 无法解析的外部符号 "public: void __thiscall state::print(void)" (?print@state@@QAEXXZ)，该符号在函数 _main 中被引用
+     1>8Num.obj : error LNK2019: 无法解析的外部符号 "public: void __thiscall state::randep(int)" (?randep@state@@QAEXH@Z)，该符号在函数 _main 中被引用
+     1>8Num.obj : error LNK2019: 无法解析的外部符号 "public: __thiscall state::state(int *)" (??0state@@QAE@PAH@Z)，该符号在函数 _main 中被引用
+     1>8Num.obj : error LNK2019: 无法解析的外部符号 "int __cdecl SetTarget(int const *)" (?SetTarget@@YAHPBH@Z)，该符号在函数 _main 中被引用
+     1>I:\Erthanese.Arc\Documents\Visual Studio 2010\Projects\AI_EXP_8_NUM\Debug\AI_EXP_8_NUM.exe : fatal error LNK1120: 5 个无法解析的外部命令
+     1>已完成生成项目“I:\Erthanese.Arc\Documents\Visual Studio 2010\Projects\AI_EXP_8_NUM\AI_EXP_8_NUM\AI_EXP_8_NUM.vcxproj”(build 个目标)的操作 - 失败。
+
+生成失败。
+
+已用时间 00:00:00.95
