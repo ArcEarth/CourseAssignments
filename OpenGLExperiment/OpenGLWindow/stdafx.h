@@ -8,6 +8,7 @@
 #include "targetver.h"
 
 #define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define NOMINMAX						// Exclude the macro of min/max
 // Windows Header Files:
 #include <windows.h>
 
@@ -18,6 +19,17 @@
 #include <tchar.h>
 
 
-// TODO: reference additional headers your program requires here
+// OpenGL headers
 #include <gl\GL.h>
 #include <gl\GLU.h>
+
+// Math Library
+#include <DirectXMath.h>
+
+// C++ STD & STL Headers
+#include <vector>
+#include <memory>
+#include <algorithm>
+#include <string>
+#include <iostream>
+#include <fstream>

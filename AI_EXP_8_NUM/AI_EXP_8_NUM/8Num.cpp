@@ -132,7 +132,7 @@ int main() {
 	while (Opr[k]!=4)
 	{
 		cout<<"  "<<Translate[Opr[k]]<<endl;
-		st.Move(Opr[k]);
+		st.Move((MoveDirection)Opr[k]);
 		st.Print();
 		k++;
 	}

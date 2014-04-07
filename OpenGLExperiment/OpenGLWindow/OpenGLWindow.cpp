@@ -3,6 +3,13 @@
 
 #include "stdafx.h"
 #include "OpenGLWindow.h"
+#include "ObjModel.h"
+
+using namespace Models;
+using namespace std;
+using namespace DirectX;
+using namespace DirectX::SimpleMath;
+using namespace VertexTypes;
 
 #define MAX_LOADSTRING 100
 
@@ -18,16 +25,17 @@ BOOL		keys[256];			// Array Used For The Keyboard Routine
 BOOL		active = TRUE;		// Window Active Flag Set To TRUE By Default
 BOOL		fullscreen = TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default
 
+std::vector<Models::RigidObjModel> g_Models; // The models we load from obj files.
+
 // Forward declarations of functions included in this code module:
 
 LRESULT CALLBACK	WndProc(HWND, UINT, WPARAM, LPARAM);
 BOOL				CreateGLWindow(LPCSTR title, UINT width, UINT height, UINT bits, BOOL fullscreenflag);
 GLvoid				KillGLWindow(GLvoid);
 int					DrawGLScene(GLvoid);
-//ATOM				MyRegisterClass(HINSTANCE hInstance);
-//BOOL				InitInstance(HINSTANCE, int);
-//INT_PTR CALLBACK	About(HWND, UINT, WPARAM, LPARAM);
 
+HRESULT				LoadAssetes();
+HRESULT				RenderObjModel( const Models::RigidObjModel& model);
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,// Instance
 	_In_opt_ HINSTANCE hPrevInstance,// Previous Instance
@@ -44,13 +52,15 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,// Instance
 	LoadString(hInstance, IDC_OPENGLWINDOW, szWindowClass, MAX_LOADSTRING);
 
 	// Ask The User Which Screen Mode They Prefer
-	if (MessageBox(NULL, "Would You Like To Run In Fullscreen Mode?", "Start FullScreen?", MB_YESNO | MB_ICONQUESTION) == IDNO)
-	{
-		fullscreen = FALSE;							// Windowed Mode
-	}
+	fullscreen = FALSE;							// Windowed Mode
+	//if (MessageBox(NULL, "Would You Like To Run In Fullscreen Mode?", "Start FullScreen?", MB_YESNO | MB_ICONQUESTION) == IDNO)
+	//{
+	//	fullscreen = FALSE;							// Windowed Mode
+	//}
+	LoadAssetes();
 
 	// Create Our OpenGL Window
-	if (!CreateGLWindow("NeHe's OpenGL Framework", 640, 480, 32, fullscreen))
+	if (!CreateGLWindow("Na's OpenGL Window", 640, 480, 32, fullscreen))
 	{
 		return 0;									// Quit If Window Was Not Created
 	}
@@ -96,6 +106,16 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,// Instance
 					return 0;						// Quit If Window Was Not Created
 				}
 			}
+
+			if (keys['X'])
+			{
+				g_Models[0].Position.z += 0.1f;
+			}
+
+			if (keys['Z'])
+			{
+				g_Models[0].Position.z -= 0.1f;
+			}
 		}
 	}
 
@@ -107,8 +127,14 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,// Instance
 int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
-	glLoadIdentity();									// Reset The Current Modelview Matrix
 
+	RenderObjModel(g_Models[0]);
+	return TRUE;										// Everything Went OK
+}
+
+HRESULT RenderSample()
+{
+	glLoadIdentity();									// Reset The Current Modelview Matrix
 	glTranslatef(-1.5f, 0.0f, -6.0f);					// Move Left 1.5 Units And Into The Screen 6.0
 	//	Now that we have moved to the left half of the screen, and we've set the view deep enough into the screen (-6.0) that we can see our entire scene we will create the Triangle. glBegin(GL_TRIANGLES) means we want to start drawing a triangle, and glEnd() tells OpenGL we are done creating the triangle. Typically if you want 3 points, use GL_TRIANGLES. Drawing triangles is fairly fast on most video cards. If you want 4 points use GL_QUADS to make life easier. From what I've heard, most video cards render objects as triangles anyways.Finally if you want more than 4 points, use GL_POLYGON.
 	//	In our simple program, we draw just one triangle.If we wanted to draw a second triangle, we could include another 3 lines of code(3 points) right after the first three.All six lines of code would be between glBegin(GL_TRIANGLES) and glEnd().There's no point in putting a glBegin(GL_TRIANGLES) and a glEnd() around every group of 3 points. This applies to quads as well. If you know you're drawing all quads, you can include the second group of four lines of code right after the first four lines.A polygon on the other hand(GL_POLYGON) can be made up of any amount of point so it doesn't matter how many lines you have between glBegin(GL_POLYGON) and glEnd().
@@ -129,8 +155,49 @@ int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 	glVertex3f(1.0f, -1.0f, 0.0f);				// Bottom Right
 	glVertex3f(-1.0f, -1.0f, 0.0f);				// Bottom Left
 	glEnd();									// Done Drawing The Quad
+	return S_OK;
+}
 
-	return TRUE;										// Everything Went OK
+HRESULT	LoadAssetes()
+{
+	std::ifstream cow("Mesh\\cow_color.obj");
+	if (!cow.is_open())
+		MessageBox(hWnd, "Mesh\\cow_color.obj is not loaded", "Error in loading model", MB_OK);
+	g_Models.emplace_back((istream&)cow);
+	std::ifstream v1("Mesh\\v1_color.obj");
+	if (!v1.is_open())
+		MessageBox(hWnd, "Mesh\\v1_color.obj is not loaded", "Error in loading model", MB_OK);
+	g_Models.emplace_back(v1);
+	return S_OK;
+}
+
+void RenderVertexPositionColor(const VertexTypes::VertexPositionColor& v)
+{
+	glVertex3f(v.Position.x, v.Position.y, v.Position.z);
+	glColor3f(v.Color.x, v.Color.y, v.Color.z);
+}
+
+HRESULT	RenderObjModel(const Models::RigidObjModel& model)
+{
+	glPushMatrix();
+	glLoadIdentity();
+
+	Matrix mat = model.GetModelMatrix();
+	glMultMatrixf((float*)&mat);
+
+	glBegin(GL_TRIANGLES);						// Draw A Quad
+	const auto& vertices = static_cast<const VertexCollection<VertexTypes::VertexPositionColor>&>(model.Vertices());
+	const auto& facts = model.Facets();
+	for (const auto& f : facts)
+	{
+		RenderVertexPositionColor(vertices[f.x]);
+		RenderVertexPositionColor(vertices[f.y]);
+		RenderVertexPositionColor(vertices[f.z]);
+	}
+	glEnd();									// Done Drawing The Quad
+
+	glPopMatrix();
+	return S_OK;
 }
 
 GLvoid ReSizeGLScene(GLsizei width, GLsizei height)		// Resize And Initialize The GL Window
