@@ -1,62 +1,28 @@
-========================================================================
-    WIN32 APPLICATION : OpenGLWindow Project Overview
-========================================================================
+An simple OpenGL/C++ win32 application support Observing vertex colored .obj model.
+We try to build this as an object oriented application instead of an mass C-style application. And is still WIP.
 
-AppWizard has created this OpenGLWindow application for you.
+Model requirement:
+put the corresponding obj file inside Mesh\ folder, the app folder should look like
+OpenGLWindow.exe
+Mesh\cow_color.obj
+Mesh\v1_color.obj
 
-This file contains a summary of what you will find in each of the files that
-make up your OpenGLWindow application.
+Usage : 
+press 'Z' to zoom out
+press 'X' to zoom in
+press 'P' to swith to perspective camera
+press 'O' to swith to orithographic camera
+Up/Down/Left/Right to move the model
+Hold <Left Mouse Button> to rotate the model
+use 1/2 to switch different model (1 for cow_color.obj, 2 for v1_color.obj)
 
+Technique Used for optimzing:
+the rendering process is handled with GL array APIs, should be much mroe better than dozens of Vertex3f, but I'm not sure about weather the vertex/index array is buffered inside GPU, or must be transfered between CPU/GPU every frame.
 
-OpenGLWindow.vcxproj
-    This is the main project file for VC++ projects generated using an Application Wizard.
-    It contains information about the version of Visual C++ that generated the file, and
-    information about the platforms, configurations, and project features selected with the
-    Application Wizard.
+Library referenced:
+openGL/GLU
+Windows API
+DirectX Math
+STL (C++11 support required)
 
-OpenGLWindow.vcxproj.filters
-    This is the filters file for VC++ projects generated using an Application Wizard. 
-    It contains information about the association between the files in your project 
-    and the filters. This association is used in the IDE to show grouping of files with
-    similar extensions under a specific node (for e.g. ".cpp" files are associated with the
-    "Source Files" filter).
-
-OpenGLWindow.cpp
-    This is the main application source file.
-
-/////////////////////////////////////////////////////////////////////////////
-AppWizard has created the following resources:
-
-OpenGLWindow.rc
-    This is a listing of all of the Microsoft Windows resources that the
-    program uses.  It includes the icons, bitmaps, and cursors that are stored
-    in the RES subdirectory.  This file can be directly edited in Microsoft
-    Visual C++.
-
-Resource.h
-    This is the standard header file, which defines new resource IDs.
-    Microsoft Visual C++ reads and updates this file.
-
-OpenGLWindow.ico
-    This is an icon file, which is used as the application's icon (32x32).
-    This icon is included by the main resource file OpenGLWindow.rc.
-
-small.ico
-    This is an icon file, which contains a smaller version (16x16)
-    of the application's icon. This icon is included by the main resource
-    file OpenGLWindow.rc.
-
-/////////////////////////////////////////////////////////////////////////////
-Other standard files:
-
-StdAfx.h, StdAfx.cpp
-    These files are used to build a precompiled header (PCH) file
-    named OpenGLWindow.pch and a precompiled types file named StdAfx.obj.
-
-/////////////////////////////////////////////////////////////////////////////
-Other notes:
-
-AppWizard uses "TODO:" comments to indicate parts of the source code you
-should add to or customize.
-
-/////////////////////////////////////////////////////////////////////////////
+All of these should ne installed along with Visual Studio 2012/2013 (Desktop Express)
