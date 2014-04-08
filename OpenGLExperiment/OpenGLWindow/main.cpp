@@ -1,8 +1,8 @@
-// OpenGLWindow.cpp : Defines the entry point for the application.
+// main.cpp : Defines the entry point for the application.
 //
 
 #include "stdafx.h"
-#include "OpenGLWindow.h"
+#include "resource.h"
 #include "ObjModel.h"
 
 using namespace Models;
@@ -19,13 +19,19 @@ HGLRC		hRC = NULL;		// Permanent Rendering Context
 HWND		hWnd = NULL;		// Holds Our Window Handle
 HINSTANCE	hInst;		// Holds The Instance Of The Application
 
+uint32_t	wndWidth;
+uint32_t	wndHeight;
+
 TCHAR		szTitle[MAX_LOADSTRING];					// The title bar text
 TCHAR		szWindowClass[MAX_LOADSTRING];			// the main window class name
 BOOL		keys[256];			// Array Used For The Keyboard Routine
+BOOL		buttons[3];			// Array for mouse buttons
 BOOL		active = TRUE;		// Window Active Flag Set To TRUE By Default
 BOOL		fullscreen = TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default
 
-std::vector<Models::RigidObjModel> g_Models; // The models we load from obj files.
+std::vector<Models::RigidObjModel> g_Models;	// The models we load from obj files.
+size_t		g_CurrentModelIdx = 0;				// The index of current model to be draw
+Vector3		lastSpherePoint;					// Record the last mouse postion for impleament the rotation operation
 
 // Forward declarations of functions included in this code module:
 
@@ -35,7 +41,11 @@ GLvoid				KillGLWindow(GLvoid);
 int					DrawGLScene(GLvoid);
 
 HRESULT				LoadAssetes();
-HRESULT				RenderObjModel( const Models::RigidObjModel& model);
+
+HRESULT				RenderObjModelNaive(const Models::RigidObjModel& model);
+HRESULT				RenderObjModelWithVertexIndexArray(const Models::RigidObjModel& model);
+
+Vector3				ProjectScreenIntoUintSphere(POINT pos, UINT width, UINT height);
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,// Instance
 	_In_opt_ HINSTANCE hPrevInstance,// Previous Instance
@@ -109,12 +119,71 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,// Instance
 
 			if (keys['X'])
 			{
-				g_Models[0].Position.z += 0.1f;
+				g_Models[g_CurrentModelIdx].Position.z += 0.1f;
 			}
 
 			if (keys['Z'])
 			{
-				g_Models[0].Position.z -= 0.1f;
+				g_Models[g_CurrentModelIdx].Position.z -= 0.1f;
+			}
+
+			if (keys['O'])
+			{
+				glMatrixMode(GL_PROJECTION);
+				glLoadIdentity();								// Reset The Projection Matrix
+				float aspect = (GLfloat) wndWidth / (GLfloat) wndHeight;
+				glOrtho(-aspect, aspect, -1.0, 1.0, 0.1f, 100);
+				glMatrixMode(GL_MODELVIEW);
+			}
+
+			if (keys['P'])
+			{
+				glMatrixMode(GL_PROJECTION);
+				glLoadIdentity();									// Reset The Projection Matrix
+				gluPerspective(45.0f, (GLfloat) wndWidth / (GLfloat) wndHeight, 0.1f, 100.0f);
+				glMatrixMode(GL_MODELVIEW);
+			}
+
+			if (keys[VK_UP])
+			{
+				g_Models[g_CurrentModelIdx].Position.y += 0.1f;
+			}
+			if (keys[VK_DOWN])
+			{
+				g_Models[g_CurrentModelIdx].Position.y -= 0.1f;
+			}
+			if (keys[VK_LEFT])
+			{
+				g_Models[g_CurrentModelIdx].Position.x -= 0.1f;
+			}
+			if (keys[VK_RIGHT])
+			{
+				g_Models[g_CurrentModelIdx].Position.x += 0.1f;
+			}
+			if (keys['1'])
+			{
+				g_CurrentModelIdx = 0;
+			}
+			if (keys['2'])
+			{
+				g_CurrentModelIdx = 1;
+			}
+
+			if (buttons[0])
+			{
+				POINT p;
+				GetCursorPos(&p);
+				ScreenToClient(hWnd, &p);
+				auto endSpherePoint = ProjectScreenIntoUintSphere(p, wndWidth, wndHeight);
+				auto delta = (endSpherePoint - lastSpherePoint);
+				float angle = delta.Length();
+				auto axis = lastSpherePoint.Cross(endSpherePoint);
+				if (axis.LengthSquared() > 0.001f)
+				{
+					//g_Models[g_CurrentModelIdx].Orientation = DirectX::XMQuaternionMultiply((XMVECTOR)initialOrientation,XMQuaternionRotationNormal(axis, angle));
+					g_Models[g_CurrentModelIdx].Orientation *= XMQuaternionRotationAxis(axis, angle);
+					lastSpherePoint = endSpherePoint;
+				}
 			}
 		}
 	}
@@ -128,7 +197,7 @@ int DrawGLScene(GLvoid)									// Here's Where We Do All The Drawing
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	// Clear Screen And Depth Buffer
 
-	RenderObjModel(g_Models[0]);
+	RenderObjModelWithVertexIndexArray(g_Models[g_CurrentModelIdx]);
 	return TRUE;										// Everything Went OK
 }
 
@@ -163,11 +232,14 @@ HRESULT	LoadAssetes()
 	std::ifstream cow("Mesh\\cow_color.obj");
 	if (!cow.is_open())
 		MessageBox(hWnd, "Mesh\\cow_color.obj is not loaded", "Error in loading model", MB_OK);
-	g_Models.emplace_back((istream&)cow);
+	g_Models.emplace_back((istream&) cow);
+	g_Models.back().Position.z = -2.0f;
 	std::ifstream v1("Mesh\\v1_color.obj");
 	if (!v1.is_open())
 		MessageBox(hWnd, "Mesh\\v1_color.obj is not loaded", "Error in loading model", MB_OK);
 	g_Models.emplace_back(v1);
+	g_Models.back().Position.z = -12.0f;
+	g_Models.back().Position.y = -1.0f;
 	return S_OK;
 }
 
@@ -177,13 +249,13 @@ void RenderVertexPositionColor(const VertexTypes::VertexPositionColor& v)
 	glColor3f(v.Color.x, v.Color.y, v.Color.z);
 }
 
-HRESULT	RenderObjModel(const Models::RigidObjModel& model)
+HRESULT	RenderObjModelNaive(const Models::RigidObjModel& model)
 {
 	glPushMatrix();
 	glLoadIdentity();
 
 	Matrix mat = model.GetModelMatrix();
-	glMultMatrixf((float*)&mat);
+	glMultMatrixf((float*) &mat);
 
 	glBegin(GL_TRIANGLES);						// Draw A Quad
 	const auto& vertices = static_cast<const VertexCollection<VertexTypes::VertexPositionColor>&>(model.Vertices());
@@ -200,12 +272,47 @@ HRESULT	RenderObjModel(const Models::RigidObjModel& model)
 	return S_OK;
 }
 
+HRESULT	RenderObjModelWithVertexIndexArray(const Models::RigidObjModel& model)
+{
+	glPushMatrix();
+	glLoadIdentity();
+
+	// Setup the model's rigid transformation
+	Matrix mat = model.GetModelMatrix();
+	glMultMatrixf((float*) &mat);
+
+	const auto& vertices = static_cast<const VertexCollection<VertexTypes::VertexPositionColor>&>(model.Vertices());
+	const auto& facts = model.Facets();
+	const uint32_t* indices = &facts[0].x;
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+
+	glVertexPointer(3, GL_FLOAT, 7 * sizeof(GLfloat), &vertices[0].Position);
+	glColorPointer(3, GL_FLOAT, 7 * sizeof(GLfloat), &vertices[0].Color);
+
+	//glBegin(GL_TRIANGLES);						
+
+	glDrawElements(GL_TRIANGLES, facts.size() * 3, GL_UNSIGNED_INT, indices);
+
+	//glEnd();				
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+
+	glPopMatrix();
+	return S_OK;
+}
+
 GLvoid ReSizeGLScene(GLsizei width, GLsizei height)		// Resize And Initialize The GL Window
 {
 	if (height == 0)										// Prevent A Divide By Zero By
 	{
 		height = 1;										// Making Height Equal One
 	}
+
+	wndWidth = width;
+	wndHeight = height;
 
 	glViewport(0, 0, width, height);						// Reset The Current Viewport
 
@@ -498,12 +605,38 @@ LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
 		ReSizeGLScene(LOWORD(lParam), HIWORD(lParam));  // LoWord=Width, HiWord=Height
 		return 0;								// Jump Back
 	}
+
+	case WM_LBUTTONDOWN:
+	{
+		buttons[0] = TRUE;
+		POINT p;
+		GetCursorPos(&p);
+		ScreenToClient(hWnd, &p);
+		lastSpherePoint = ProjectScreenIntoUintSphere(p, wndWidth, wndHeight);
+		//initialOrientation = g_Models[g_CurrentModelIdx].Orientation;
+		return 0;
+	}
+
+	case WM_LBUTTONUP:
+	{
+		buttons[0] = FALSE;
+		return 0;
+	}
 	}
 
 	// Pass All Unhandled Messages To DefWindowProc
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
+Vector3	ProjectScreenIntoUintSphere(POINT pos, UINT width, UINT height)
+{
+	Vector3 v;
+	/* project x,y onto a hemisphere centered within width, height */
+	v.x = (2.0f*pos.x - width) / width;
+	v.y = (height - 2.0f*pos.y) / height;
+	v.z = sqrt(1.0f - v.LengthSquared());
+	return v;
+}
 
 
 
@@ -631,40 +764,40 @@ LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
 //	return (INT_PTR)FALSE;
 //}
 
-	//int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
-	//	_In_opt_ HINSTANCE hPrevInstance,
-	//	_In_ LPTSTR    lpCmdLine,
-	//	_In_ int       nCmdShow)
-	//{
-	//	UNREFERENCED_PARAMETER(hPrevInstance);
-	//	UNREFERENCED_PARAMETER(lpCmdLine);
-	//
-	//	// TODO: Place code here.
-	//	MSG msg;
-	//	HACCEL hAccelTable;
-	//
-	//	// Initialize global strings
-	//	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
-	//	LoadString(hInstance, IDC_OPENGLWINDOW, szWindowClass, MAX_LOADSTRING);
-	//	MyRegisterClass(hInstance);
-	//
-	//	// Perform application initialization:
-	//	if (!InitInstance(hInstance, nCmdShow))
-	//	{
-	//		return FALSE;
-	//	}
-	//
-	//	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_OPENGLWINDOW));
-	//
-	//	// Main message loop:
-	//	while (GetMessage(&msg, NULL, 0, 0))
-	//	{
-	//		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
-	//		{
-	//			TranslateMessage(&msg);
-	//			DispatchMessage(&msg);
-	//		}
-	//	}
-	//
-	//	return (int) msg.wParam;
-	//}
+//int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
+//	_In_opt_ HINSTANCE hPrevInstance,
+//	_In_ LPTSTR    lpCmdLine,
+//	_In_ int       nCmdShow)
+//{
+//	UNREFERENCED_PARAMETER(hPrevInstance);
+//	UNREFERENCED_PARAMETER(lpCmdLine);
+//
+//	// TODO: Place code here.
+//	MSG msg;
+//	HACCEL hAccelTable;
+//
+//	// Initialize global strings
+//	LoadString(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
+//	LoadString(hInstance, IDC_OPENGLWINDOW, szWindowClass, MAX_LOADSTRING);
+//	MyRegisterClass(hInstance);
+//
+//	// Perform application initialization:
+//	if (!InitInstance(hInstance, nCmdShow))
+//	{
+//		return FALSE;
+//	}
+//
+//	hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_OPENGLWINDOW));
+//
+//	// Main message loop:
+//	while (GetMessage(&msg, NULL, 0, 0))
+//	{
+//		if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
+//		{
+//			TranslateMessage(&msg);
+//			DispatchMessage(&msg);
+//		}
+//	}
+//
+//	return (int) msg.wParam;
+//}

@@ -82,8 +82,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AlignedNew.h" />
+    <ClInclude Include="GLWindow.h" />
     <ClInclude Include="ObjModel.h" />
-    <ClInclude Include="OpenGLWindow.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="stdafx.h" />
@@ -91,8 +91,9 @@
     <ClInclude Include="VertexTypes.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GLWindow.cpp" />
     <ClCompile Include="ObjModel.cpp" />
-    <ClCompile Include="OpenGLWindow.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
