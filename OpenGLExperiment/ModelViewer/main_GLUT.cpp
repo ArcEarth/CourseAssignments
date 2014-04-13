@@ -11,7 +11,7 @@ using namespace std;
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
-int  winWidth, winHeight;
+int		winWidth, winHeight;
 int		g_CurrentGLUTWindow;
 
 bool	g_TrackingMouse = false;
@@ -21,37 +21,6 @@ std::vector<Models::RigidObjModel> g_Models;	// The models we load from obj file
 size_t		g_CurrentModelIdx = 0;				// The index of current model to be draw
 Vector3		g_RotationStartPoint;					// Record the last mouse postion for impleament the rotation operation
 Vector3		g_TranslationVelocity;
-/* Draw the cube */
-GLfloat vertices [][3] = {
-		{ -1.0, -1.0, -1.0 }, { 1.0, -1.0, -1.0 }, { 1.0, 1.0, -1.0 },
-		{ -1.0, 1.0, -1.0 },
-		{ -1.0, -1.0, 1.0 }, { 1.0, -1.0, 1.0 }, { 1.0, 1.0, 1.0 }, { -1.0, 1.0, 1.0 }
-};
-GLfloat colors [][3] = {
-		{ 0.0, 0.0, 0.0 }, { 1.0, 0.0, 0.0 }, { 1.0, 1.0, 0.0 }, { 0.0, 1.0, 0.0 },
-		{ 0.0, 0.0, 1.0 }, { 1.0, 0.0, 1.0 }, { 1.0, 1.0, 1.0 }, { 0.0, 1.0, 1.0 }
-};
-void polygon(int a, int b, int c, int d, int face)
-{
-	/* draw a polygon via list of vertices */
-	glBegin(GL_POLYGON);
-	glColor3fv(colors[a]);
-	glVertex3fv(vertices[a]);
-	glVertex3fv(vertices[b]);
-	glVertex3fv(vertices[c]);
-	glVertex3fv(vertices[d]);
-	glEnd();
-}
-void colorcube(void)
-{
-	/* map vertices to faces */
-	polygon(1, 0, 3, 2, 0);
-	polygon(3, 7, 6, 2, 1);
-	polygon(7, 3, 0, 4, 2);
-	polygon(2, 6, 5, 1, 3);
-	polygon(4, 5, 6, 7, 4);
-	polygon(5, 4, 0, 1, 5);
-}
 
 void SetPerspectiveProjection()
 {
@@ -103,7 +72,6 @@ void RotationTracking_Begin(int x, int y)
 void RotationTracking_End(int x, int y)
 {
 	g_TrackingMouse = false;
-
 }
 
 bool RenderObjModelWithVertexIndexArray(const Models::RigidObjModel& model)
@@ -138,8 +106,8 @@ bool RenderObjModelWithVertexIndexArray(const Models::RigidObjModel& model)
 
 void RenderVertexPositionColor(const VertexTypes::VertexPositionColor& v)
 {
-	glVertex3f(v.Position.x, v.Position.y, v.Position.z);
 	glColor3f(v.Color.x, v.Color.y, v.Color.z);
+	glVertex3f(v.Position.x, v.Position.y, v.Position.z);
 }
 
 bool RenderObjModelToDisplayList(const Models::RigidObjModel& model)

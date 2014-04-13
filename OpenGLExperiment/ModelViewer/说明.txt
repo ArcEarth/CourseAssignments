@@ -33,6 +33,9 @@ This is technique is easier to use, but I don't use it here because I haven't re
 
 SSE2 Acceleration for Vector types
 This is finished by using DirectX Math labrary, this inline C++ lab provide extrme performence by using SSE2/ARM_NEON instrinctions.
+
+Redraw only when nessary
+The redraw is only called when view changed ,not redraw the scene for every frame, this could not improve the frame rate for interactive and imrove the user experience, but could save the compuational power and battery life.
 =========================================
 Library referenced:
 openGL/GLU
