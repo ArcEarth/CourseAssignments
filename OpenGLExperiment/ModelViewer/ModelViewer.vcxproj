@@ -10,10 +10,22 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main_GLUT.cpp" />
+    <ClCompile Include="ObjModel.cpp" />
+    <ClCompile Include="VertexTypes.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ObjModel.h" />
+    <ClInclude Include="SimpleMath.h" />
+    <ClInclude Include="VertexTypes.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SimpleMath.inl" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5068C946-0F8C-49A9-B8E0-0179A1BD6AA2}</ProjectGuid>
-    <Keyword>Win32Proj</Keyword>
-    <RootNamespace>OpenGLWindow</RootNamespace>
+    <ProjectGuid>{D662000A-2C01-4AB5-8F63-D6E728C4593B}</ProjectGuid>
+    <RootNamespace>ModelViewer</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -27,7 +39,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v120</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -39,87 +51,31 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LinkIncremental>false</LinkIncremental>
-  </PropertyGroup>
+  <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>openGL32.lib;glu32.lib;glut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <PrecompiledHeader>Use</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>openGL32.lib;glu32.lib;glut32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="AlignedNew.h" />
-    <ClInclude Include="GLWindow.h" />
-    <ClInclude Include="ObjModel.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="SimpleMath.h" />
-    <ClInclude Include="stdafx.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="VertexTypes.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="GLWindow.cpp" />
-    <ClCompile Include="ObjModel.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-    </ClCompile>
-    <ClCompile Include="VertexTypes.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="OpenGLWindow.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="OpenGLWindow.ico" />
-    <Image Include="small.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="Mesh\cow_color.obj">
-      <FileType>Document</FileType>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
-    </Image>
-    <Image Include="Mesh\v1_color.obj">
-      <FileType>Document</FileType>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</DeploymentContent>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="SimpleMath.inl" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

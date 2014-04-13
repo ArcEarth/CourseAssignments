@@ -31,7 +31,7 @@ BOOL		fullscreen = TRUE;	// Fullscreen Flag Set To Fullscreen Mode By Default
 
 std::vector<Models::RigidObjModel> g_Models;	// The models we load from obj files.
 size_t		g_CurrentModelIdx = 0;				// The index of current model to be draw
-Vector3		lastSpherePoint;					// Record the last mouse postion for impleament the rotation operation
+Vector3		g_RotationStartPoint;					// Record the last mouse postion for impleament the rotation operation
 
 // Forward declarations of functions included in this code module:
 
@@ -175,14 +175,14 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,// Instance
 				GetCursorPos(&p);
 				ScreenToClient(hWnd, &p);
 				auto endSpherePoint = ProjectScreenIntoUintSphere(p, wndWidth, wndHeight);
-				auto delta = (endSpherePoint - lastSpherePoint);
+				auto delta = (endSpherePoint - g_RotationStartPoint);
 				float angle = delta.Length();
-				auto axis = lastSpherePoint.Cross(endSpherePoint);
+				auto axis = g_RotationStartPoint.Cross(endSpherePoint);
 				if (axis.LengthSquared() > 0.001f)
 				{
 					//g_Models[g_CurrentModelIdx].Orientation = DirectX::XMQuaternionMultiply((XMVECTOR)initialOrientation,XMQuaternionRotationNormal(axis, angle));
 					g_Models[g_CurrentModelIdx].Orientation *= XMQuaternionRotationAxis(axis, angle);
-					lastSpherePoint = endSpherePoint;
+					g_RotationStartPoint = endSpherePoint;
 				}
 			}
 		}
@@ -612,7 +612,7 @@ LRESULT CALLBACK WndProc(HWND	hWnd,			// Handle For This Window
 		POINT p;
 		GetCursorPos(&p);
 		ScreenToClient(hWnd, &p);
-		lastSpherePoint = ProjectScreenIntoUintSphere(p, wndWidth, wndHeight);
+		g_RotationStartPoint = ProjectScreenIntoUintSphere(p, wndWidth, wndHeight);
 		//initialOrientation = g_Models[g_CurrentModelIdx].Orientation;
 		return 0;
 	}
