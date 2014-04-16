@@ -66,6 +66,7 @@ shared_ptr<SearchState> AStarSearch(GameBoard initialState)
 			}
 		}
 	} while (!stateQueue.empty()); // Or you should setup an time-limit here instead of this unlimited loop
+	return StatePtr(nullptr);
 }
 
 // Iterative Depth First A* Search's DFS visit method
@@ -108,7 +109,7 @@ int main() {
 	cin>>n;
 	const char Translate[4]={'<','^','>', 'v'};
 	int *Opr=new int[50];
-	srand(time(NULL));
+	srand(static_cast<unsigned int>(time(nullptr)));
 	GameBoard sp(T);
 //	cout<<"The goal state is a default one."<<endl;
 //	sp.print();
@@ -124,7 +125,8 @@ int main() {
 	if (!ASTAR)	
 		while (!visit(sp,0,m,Opr)) m++;//IDsearch
 	else				
-		while (r=IDAstar_visit(sp,0,m,Opr)) m=r;//IDA*Search
+		while (r=IDAstar_visit(sp,0,m,Opr)) 
+			m=r;//IDA*Search
 
 	cout<<"This is the solution operation:"<<endl;
 	k=0;

@@ -38,7 +38,7 @@ void GameBoard::Print(){
 	}
 }
 
-GameBoard::GameBoard(int *p){
+GameBoard::GameBoard(int *p){ 
 	for (int k=0;k<9;k++)
 	{
 		D[k]=p[k];

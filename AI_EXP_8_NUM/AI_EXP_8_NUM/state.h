@@ -82,12 +82,12 @@ std::shared_ptr<SearchState> CreateNewStateByMove(const std::shared_ptr<SearchSt
 
 inline bool operator<(const SearchState& lhs, const SearchState& rhs)
 {
-	lhs.Evaluate() < rhs.Evaluate();
+	return lhs.Evaluate() < rhs.Evaluate();
 }
 
 template <typename _Ty>
 struct ptref_less
-	: public binary_function<_Ty, _Ty, bool>
+	: public std::binary_function<_Ty, _Ty, bool>
 {	// functor for operator<
 	bool operator()(const _Ty& _Left, const _Ty& _Right) const
 	{	// apply operator< to operands
