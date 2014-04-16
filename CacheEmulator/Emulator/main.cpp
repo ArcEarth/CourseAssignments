@@ -91,6 +91,7 @@ public:
 	virtual double GetTimeCost() const = 0;
 };
 
+// Represent the composed cache handling the instruction/data independently
 class ComposedCache : public ICache
 {
 	size_t	DataCacheSize = 32; // Data Cache Size in Byte
@@ -98,10 +99,11 @@ class ComposedCache : public ICache
 	bool EnableIndependentInstructionCache;
 };
 
-class PrimaryCache : public ICache
+// Represent the unified Data cache, support lot of write enable feature, no instruction pretrive or independent instruction cache
+class DataCache : public ICache
 {
 public:
-	PrimaryCache(size_t	cacheSize = 64U<<10U,
+	DataCache(size_t	cacheSize = 64U<<10U,
 				size_t	lineWidth = 32,
 				size_t	setWidth = 1,
 				SwitchOutPolicyEnum switchOutPolicy = LatestRecentUse,
@@ -122,7 +124,7 @@ public:
 	size_t	LineCount;		// The total count of blocks, = CacheSize / LineWidth
 	size_t	SetWidth = 1;	// The parameter N in N-Set association , unit is Cache line
 	size_t	SetCount;		// The count of sets, = LineCount / SetWidth
-
+	size_t	WordWidth = 4;	// The word width , which affect read/write performance , default to 32bit(4Byte)
 	double	MemeryReadTime = 100;	// For read instruction miss
 	double	MemeryWriteTime = 50;		// For case like write throgh or write-back switch out 
 	double	CacheReadTime = 1;		// For read instruction hit
@@ -195,24 +197,39 @@ protected:
 	void SwitchIn(size_t lineAddr, size_t memBlockAddr)
 	{
 		CacheLines[lineAddr].Load(memBlockAddr, GetCurrentTime());
-		TimeCost += MemeryReadTime;
+		AccessMemery(true, memBlockAddr, LineWidth / WordWidth);
 	}
+
 	void SwitchOut(size_t lineAddr)
 	{
 		if (CacheLines[lineAddr].Dirty)
 		{
-			TimeCost += MemeryWriteTime; // Write-Back
+			AccessMemery(false, CacheLines[lineAddr].MappedAddress, LineWidth / WordWidth);
 		}
 		CacheLines[lineAddr].Reset();
 	}
 
-	void AccessData(CommandTypeEnum type, size_t cacheLineAddr, size_t offset)
+	/// <summary>
+	/// Accesses the memery. falg true = read, false = write.
+	/// </summary>
+	/// <param name="readOrWrite"> read or write the memery, true = read, false = write.</param>
+	/// <param name="address">The address.</param>
+	void AccessMemery(bool readOrWrite, size_t address, size_t lengthInWord = 1)
+	{
+		if (readOrWrite)
+			TimeCost += MemeryReadTime * lengthInWord;
+		else
+			TimeCost += MemeryWriteTime * lengthInWord;
+	}
+
+	void AccessCache(CommandTypeEnum type, size_t cacheLineAddr, size_t offset)
 	{
 		if (SwitchOutPolicy == LatestRecentUse)
 			CacheLines[cacheLineAddr].TimeStamp = GetCurrentTime(); // Update the use time inside the time stamp
+
 		if (CommandTypeTraits::IsWrite(type))
 			if (WriteBackPolicy == WriteThrough)
-				TimeCost += MemeryWriteTime;
+				AccessMemery(false, CacheLines[cacheLineAddr].MappedAddress + offset);
 			else {
 				TimeCost += CacheWriteTime;
 				CacheLines[cacheLineAddr].Dirty = true;
@@ -220,6 +237,7 @@ protected:
 		else
 			TimeCost += CacheReadTime;
 	}
+
 
 	size_t FindLineToSwitchIn(size_t setNo)
 	{
@@ -244,7 +262,7 @@ protected:
 
 };
 
-void PrimaryCache::Reset()
+void DataCache::Reset()
 {
 	LineCount = CacheSize / LineWidth;
 	SetCount = LineCount / SetWidth;
@@ -263,7 +281,7 @@ void PrimaryCache::Reset()
 	TimeCost = 0;
 }
 
-int PrimaryCache::ExcuteCommand(CommandTypeEnum type, size_t memAddr)
+int DataCache::ExcuteCommand(CommandTypeEnum type, size_t memAddr)
 {
 	++CommandCounts[type];
 
@@ -275,171 +293,41 @@ int PrimaryCache::ExcuteCommand(CommandTypeEnum type, size_t memAddr)
 	if (lineNo >= 0) // Finded
 	{
 		++CommandHitCounts[type];	// Cache hit! good job
+		AccessCache(type, lineNo, memAddr % LineWidth); // Acess the data
 	}
 	else	// Not hit , Cache miss , we should switch in the data
 	{
+		if (CommandTypeTraits::IsWrite(type) && WriteMissPolicy == NotAllocation)
+		{
+			AccessMemery(false, memAddr);
+			return -1;
+		}
+
 		lineNo = FindLineToSwitchIn(setNo); // Find the target line to switchIn
 
 		if (!CacheLines[lineNo].IsEmpty())	// Not find empty line
 			SwitchOut(lineNo);				// Switch out the existed line
 
 		SwitchIn(lineNo, blockNo);			// Switch in the data we need
-
+		AccessCache(type, lineNo, memAddr % LineWidth); // Acess the data
 	}
 
-	AccessData(type, lineNo, memAddr % LineWidth); // Acess the data
 	return lineNo;
 }
 
-const int PrimaryCache::GetCommandCounts(CommandTypeEnum type) const
+const int DataCache::GetCommandCounts(CommandTypeEnum type) const
 {
 	return CommandCounts[type];
 }
-const int PrimaryCache::GetCommandHitCounts(CommandTypeEnum type) const
+const int DataCache::GetCommandHitCounts(CommandTypeEnum type) const
 {
 	return CommandHitCounts[type];
 }
-double PrimaryCache::GetTimeCost() const
+double DataCache::GetTimeCost() const
 {
 	return TimeCost;
 }
 
-//int ComposedCache::Reset()
-//{
-//}
-//
-//int CacheEmulator::ExcuteCommand(CommandTypeEnum type, size_t memAddr)
-//{
-//	auto cache = GetCache(type);
-//	auto set = MapToSet(type, memAddr);
-//
-//}
-
-int CacheSize = 64; // Total Cache size in KB
-int BlockSize = 32; // Cache line size in Byte
-int BlockCount;		// The total count of blocks, = CacheSize / BlockSize
-
-int inst_type;
-int map = 1;
-int replace = 1;
-int write = 0;
-int n = 4;
-
-struct chunk{
-	int m;
-	int t;
-};
-chunk *ch;
-
-int g_time;
-
-int num_inst = 0;
-int c_hit = 0;
-double hit_rate = 0.0;
-
-int rd_num = 0;
-int ri_num = 0;
-int w_num = 0;
-int w_hit = 0;
-int ri_hit = 0;
-int rd_hit = 0;
-double ri_rate = 0.0;
-double w_rate = 0.0;
-double rd_rate = 0.0;
-
-void init(int c_cap, int b_cap){
-	BlockCount = c_cap * 1024 / b_cap;
-	ch = new chunk[BlockCount];
-	for (int i = 0; i < BlockCount; i++){
-		ch[i].m = -1;
-	}
-}
-
-void repl(int s, int c){
-	int t = n * s;
-	int k = t;
-	int min = ch[t].t;
-	for (int i = 0; i < n; i++){
-		if (ch[t + i].m == -1){
-			ch[t + i].m = c;
-			ch[t + i].t = g_time;
-			return;
-		}
-	}
-	for (int i = 0; i < n; i++){
-		if (ch[t + i].t < min){
-			min = ch[t + i].t;
-			k = t + i;
-		}
-	}
-	ch[k].m = c;
-	ch[k].t = g_time;
-}
-
-int direct(int memAddr){
-	int s;
-	s = memAddr%BlockCount;
-	if (ch[s].m == memAddr){
-		return s;
-		c_hit++;
-		switch (inst_type) {
-		case 0: rd_hit++; break;
-		case 1:w_hit++; break;
-		case 2:ri_hit++; break;
-		}
-	}
-	ch[s].m = memAddr;
-	return s;
-}
-
-void SetAssociate(int memAddr){
-	int s;
-	s = memAddr%(BlockCount / n);
-	for (int i = 0; i < n; i++){
-		if (ch[n * s + i].m == memAddr)
-		{
-			c_hit++;
-			switch (inst_type) {
-			case 0: rd_hit++; break;
-			case 1:w_hit++; break;
-			case 2:ri_hit++; break;
-			}
-			if (replace == 1)
-				ch[n * s + i].t = g_time;
-			return;
-		}
-	}
-	repl(s, memAddr);
-}
-
-void play_trace(int b_cap)
-{
-	ifstream in("instructions\\cc1.din");
-	if (!in.is_open())
-		return;
-	unsigned addr;
-	int c;
-	in >> hex;
-	in >> inst_type;
-	in >> addr;
-
-	while (!in.fail()) {
-		g_time++;
-		num_inst++;
-		c = addr / b_cap;
-		switch (inst_type) {
-		case 0: rd_num++; break;
-		case 1:w_num++; break;
-		case 2:ri_num++; break;
-		}
-
-		switch (map) {
-		case 0: direct(c); break;
-		case 1: SetAssociate(c); break;
-		}
-		in >> inst_type >> addr;
-	}
-}
 
 void ExcuteFromFile(ICache& cache, const std::string& fileName)
 {
@@ -468,7 +356,7 @@ void PrintAccuracy(const std::string& InstructionName, int CommandCount, int Hit
 
 void main(int argc, char** argv){
 
-	PrimaryCache cache(64*1024,32,2,FirstInFirstOut,WriteBack,Allocation);
+	DataCache cache(64*1024,32,2,FirstInFirstOut,WriteBack,Allocation);
 
 	ExcuteFromFile(cache, "instructions\\cc1.din");
 
@@ -481,10 +369,10 @@ void main(int argc, char** argv){
 	PrintAccuracy("数据写指令", cache.GetCommandCounts(WriteData), cache.GetCommandHitCounts(WriteData));
 	system("pause");
 
-	map = 1;
-	replace = 1;
-	write = 0;
-	n = 2;
+	//map = 1;
+	//replace = 1;
+	//write = 0;
+	//n = 2;
 
 	//cout << "choose the strategies of cache replacement by input 0 or 1:" << endl;
 	//cout << "0:直接映射 1、n路组相连：";
@@ -536,4 +424,133 @@ void main(int argc, char** argv){
 	//cout << "\t不命中次数：" << (w_num - w_hit);
 	//cout << "\t不命中率：" << w_rate << endl << endl;
 	//system("pause");
+}
+
+namespace Lagency
+{
+	int CacheSize = 64; // Total Cache size in KB
+	int BlockSize = 32; // Cache line size in Byte
+	int BlockCount;		// The total count of blocks, = CacheSize / BlockSize
+
+	int inst_type;
+	int map = 1;
+	int replace = 1;
+	int write = 0;
+	int n = 4;
+
+	struct chunk{
+		int m;
+		int t;
+	};
+	chunk *ch;
+
+	int g_time;
+
+	int num_inst = 0;
+	int c_hit = 0;
+	double hit_rate = 0.0;
+
+	int rd_num = 0;
+	int ri_num = 0;
+	int w_num = 0;
+	int w_hit = 0;
+	int ri_hit = 0;
+	int rd_hit = 0;
+	double ri_rate = 0.0;
+	double w_rate = 0.0;
+	double rd_rate = 0.0;
+
+	void init(int c_cap, int b_cap){
+		BlockCount = c_cap * 1024 / b_cap;
+		ch = new chunk[BlockCount];
+		for (int i = 0; i < BlockCount; i++){
+			ch[i].m = -1;
+		}
+	}
+
+	void repl(int s, int c){
+		int t = n * s;
+		int k = t;
+		int min = ch[t].t;
+		for (int i = 0; i < n; i++){
+			if (ch[t + i].m == -1){
+				ch[t + i].m = c;
+				ch[t + i].t = g_time;
+				return;
+			}
+		}
+		for (int i = 0; i < n; i++){
+			if (ch[t + i].t < min){
+				min = ch[t + i].t;
+				k = t + i;
+			}
+		}
+		ch[k].m = c;
+		ch[k].t = g_time;
+	}
+
+	int direct(int memAddr){
+		int s;
+		s = memAddr%BlockCount;
+		if (ch[s].m == memAddr){
+			return s;
+			c_hit++;
+			switch (inst_type) {
+			case 0: rd_hit++; break;
+			case 1:w_hit++; break;
+			case 2:ri_hit++; break;
+			}
+		}
+		ch[s].m = memAddr;
+		return s;
+	}
+
+	void SetAssociate(int memAddr){
+		int s;
+		s = memAddr % (BlockCount / n);
+		for (int i = 0; i < n; i++){
+			if (ch[n * s + i].m == memAddr)
+			{
+				c_hit++;
+				switch (inst_type) {
+				case 0: rd_hit++; break;
+				case 1:w_hit++; break;
+				case 2:ri_hit++; break;
+				}
+				if (replace == 1)
+					ch[n * s + i].t = g_time;
+				return;
+			}
+		}
+		repl(s, memAddr);
+	}
+
+	void play_trace(int b_cap)
+	{
+		ifstream in("instructions\\cc1.din");
+		if (!in.is_open())
+			return;
+		unsigned addr;
+		int c;
+		in >> hex;
+		in >> inst_type;
+		in >> addr;
+
+		while (!in.fail()) {
+			g_time++;
+			num_inst++;
+			c = addr / b_cap;
+			switch (inst_type) {
+			case 0: rd_num++; break;
+			case 1:w_num++; break;
+			case 2:ri_num++; break;
+			}
+
+			switch (map) {
+			case 0: direct(c); break;
+			case 1: SetAssociate(c); break;
+			}
+			in >> inst_type >> addr;
+		}
+	}
 }
