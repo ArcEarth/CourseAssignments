@@ -75,6 +75,12 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">_MBCS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="instructions\cc1.din" />
+    <None Include="instructions\eg.din" />
+    <None Include="instructions\spice.din" />
+    <None Include="instructions\tex.din" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
