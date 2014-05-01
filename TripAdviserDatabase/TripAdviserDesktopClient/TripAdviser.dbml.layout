@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 11, 8.5" name="TripAdviser">
+  <DataContextMoniker Name="/TripAdviserDataContext" />
+  <nestedChildShapes>
+    <classShape Id="754ad00d-3c59-44d9-9500-67796bcc55f7" absoluteBounds="3.875, 2.5, 2, 1.7708968098958331">
+      <DataClassMoniker Name="/TripAdviserDataContext/Flight" />
+      <nestedChildShapes>
+        <elementListCompartment Id="9c2ccd52-e2b1-439b-914c-72d45f78213b" absoluteBounds="3.8899999999999997, 2.96, 1.9700000000000002, 1.2108968098958333" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="2f87c2c8-c5e4-4ea0-b1da-0c78e5a61ae9" absoluteBounds="7.125, 2.875, 2, 1.3862939453125">
+      <DataClassMoniker Name="/TripAdviserDataContext/City" />
+      <nestedChildShapes>
+        <elementListCompartment Id="179105f1-44bb-4279-9600-be09371c2788" absoluteBounds="7.14, 3.335, 1.9700000000000002, 0.8262939453125" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <associationConnector edgePoints="[(7.125 : 3.56814697265625); (5.875 : 3.56814697265625)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/TripAdviserDataContext/City/City_Flight" />
+      <nodes>
+        <classShapeMoniker Id="2f87c2c8-c5e4-4ea0-b1da-0c78e5a61ae9" />
+        <classShapeMoniker Id="754ad00d-3c59-44d9-9500-67796bcc55f7" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(7.125 : 3.15907348632813); (5.875 : 3.15907348632813)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/TripAdviserDataContext/City/City_Flight1" />
+      <nodes>
+        <classShapeMoniker Id="2f87c2c8-c5e4-4ea0-b1da-0c78e5a61ae9" />
+        <classShapeMoniker Id="754ad00d-3c59-44d9-9500-67796bcc55f7" />
+      </nodes>
+    </associationConnector>
+  </nestedChildShapes>
+</ordesignerObjectsDiagram>

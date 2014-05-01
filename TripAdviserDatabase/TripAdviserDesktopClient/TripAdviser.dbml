@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?><Database Name="TripAdviserDatabase" Class="TripAdviserDataContext" xmlns="http://schemas.microsoft.com/linqtosql/dbml/2007">
+  <Connection Mode="AppSettings" ConnectionString="Data Source=(localdb)\ProjectsV12;Initial Catalog=TripAdviserDatabase;Integrated Security=True" SettingsObjectName="TripAdviserDesktopClient.Properties.Settings" SettingsPropertyName="TripAdviserDatabaseConnectionString" Provider="System.Data.SqlClient" />
+  <Table Name="dbo.Flights" Member="Flights">
+    <Type Name="Flight">
+      <Column Name="Name" Type="System.String" DbType="NChar(10) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="SourceCity" Type="System.String" DbType="NChar(10) NOT NULL" CanBeNull="false" />
+      <Column Name="TargetCity" Type="System.String" DbType="NChar(10) NOT NULL" CanBeNull="false" />
+      <Column Name="TakeoffTime" Type="System.TimeSpan" DbType="Time" CanBeNull="true" />
+      <Column Name="LandingTime" Type="System.TimeSpan" DbType="Time" CanBeNull="true" />
+      <Association Name="City_Flight" Member="ArriveCity" ThisKey="SourceCity" OtherKey="Name" Type="City" IsForeignKey="true" />
+      <Association Name="City_Flight1" Member="DepartureCity" ThisKey="TargetCity" OtherKey="Name" Type="City" IsForeignKey="true" />
+    </Type>
+  </Table>
+  <Table Name="dbo.Cities" Member="Cities">
+    <Type Name="City">
+      <Column Name="Name" Type="System.String" DbType="NChar(10) NOT NULL" IsPrimaryKey="true" CanBeNull="false" />
+      <Column Name="Longtitude" Type="System.Single" DbType="Real NOT NULL" CanBeNull="false" />
+      <Column Name="Latitude" Type="System.Single" DbType="Real" CanBeNull="true" />
+      <Association Name="City_Flight" Member="FlightsFromHere" ThisKey="Name" OtherKey="SourceCity" Type="Flight" />
+      <Association Name="City_Flight1" Member="FlightsArriveHere" ThisKey="Name" OtherKey="TargetCity" Type="Flight" />
+    </Type>
+  </Table>
+</Database>

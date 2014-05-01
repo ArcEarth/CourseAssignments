@@ -17,7 +17,6 @@
     <ClCompile Include="VertexTypes.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
     <ClInclude Include="ObjModel.h" />
     <ClInclude Include="SimpleMath.h" />
     <ClInclude Include="Texture.h" />
