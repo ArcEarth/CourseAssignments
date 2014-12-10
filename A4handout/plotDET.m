@@ -1,5 +1,11 @@
 clear
 load('adaFit');
+
+%% Tranning set
+figure(3); clf;
+plots = [];
+M = [];
+
 load('trainSet');
 
 testImSz = sizeIm;
@@ -9,32 +15,30 @@ trainNon = rescaleImageVectors(nonIm);
 nTarg = size(trainTarg,2);
 nNon = size(trainNon, 2);
 
-% 
-% figure(5); clf;
-% sumX = sum(trainTarg,2) ./ nTarg;
-% showIm(reshape(sumX,sizeIm));
-% title('Average Eye');
-
-figure(3); clf;
-% hold on;
-% hx = logspace(-1,2);
-% hy = exp(hx);
-% loglog(hx,hy);
-% hold on;
-
 X = [trainTarg trainNon];
 y = [ones(1,nTarg) zeros(1,nNon)];
 
+for F = 10 : 10 : nFeatures
+    [hx,hy,tau] = calculateDET(featList, F, X, y);
+    plots = [plots ; loglog(hx*100, hy*100)];
+    grid on;
+    hold on;
+    M = [M ; sprintf('M = %3d',F)];
+end
+
+legend(plots,M);
+
+title(sprintf('DET for Adaboost (Trainning Set), Max Feature = %d',nFeatures));
+xlabel('False Alarm Rate (%)');
+ylabel('Miss Rate (%)');
 
 
-% Training Set
-[hx,hy,~] = calculateDET(featList, nFeatures, X, y);
-plots = loglog(hx*100, hy*100);
-M = 'TrainDT';
-grid on;
-hold on;
+%% Testing set
+figure(4); clf;
+plots = [];
+M = [];
 
-% Test Set
+%Test Set
 load('testSet');
 nTarg = size(eyeIm,2);
 nNon = size(nonIm, 2);
@@ -47,12 +51,14 @@ y = [ones(1,nTarg) zeros(1,nNon)];
 for F = 10 : 10 : nFeatures
     [hx,hy,tau] = calculateDET(featList, F, X, y);
     plots = [plots ; loglog(hx*100, hy*100)];
+    grid on;
+    hold on;
     M = [M ; sprintf('M = %3d',F)];
 end
 
 legend(plots,M);
 
-title(sprintf('DET for Adaboost, nFeat = %d',nFeatures));
+title(sprintf('DET for Adaboost (Testing Set), Max Feature = %d',nFeatures));
 xlabel('False Alarm Rate (%)');
 ylabel('Miss Rate (%)');
 %hold on;
