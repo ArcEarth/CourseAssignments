@@ -38,7 +38,7 @@ function [err, thres, parity, stumpResp, r] = trainStump(f, useAbs, X, y, ...
     hTarg = hTarg/(sum(hTarg) * (hxTarg(2) - hxTarg(1)));
     [hNon, hxNon] = histo(r(y==0), 101);
     hNon = hNon/(sum(hNon) * (hxNon(2) - hxNon(1)));
-    figure(100); clf;
+    figure(2); clf;
     plot(hxTarg, hTarg, 'g');
     hold on;
     plot(hxNon, hNon, 'r');
@@ -50,24 +50,30 @@ function [err, thres, parity, stumpResp, r] = trainStump(f, useAbs, X, y, ...
   %%%%%% YOU NEED TO FILL IN CODE HERE
   %% You can change anything in this M-file (except the parameters
   %% and return values)
+%   r = [4 5 1 2 3];
+%   y = [0 0 1 1 1];
+%   w = ones(1,5);
+  
   K = size(r,2);
   [ran,IX] = sort(r);
   ran = [ran(1)-1 ran ran(K)+1];
+  ybackup = y;
   y = y(IX);
+  w = w(IX);
   thress = zeros(2,1);
   err = zeros(2,1);
   
   ls = cumsum(y .* w);
   rs = fliplr(cumsum(fliplr(~y .* w)));
   bs = [0 ls] + [rs 0];
-  [err(2),idx] = min(bs);
-  thress(2) = 0.5*(ran(idx) + ran(idx+1));
+  [err(1),idx] = min(bs);
+  thress(1) = 0.5*(ran(idx) + ran(idx+1));
  
   ls = cumsum(~y .* w);
   rs = fliplr(cumsum(fliplr(y .* w)));
   bs = [0 ls] + [rs 0];
-  [err(1),idx] = min(bs);
-  thress(1) = 0.5*(ran(idx) + ran(idx+1));
+  [err(2),idx] = min(bs);
+  thress(2) = 0.5*(ran(idx) + ran(idx+1));
   
   [err,parity] = min(err);
   err = err / sumW;
@@ -79,12 +85,17 @@ function [err, thres, parity, stumpResp, r] = trainStump(f, useAbs, X, y, ...
     stumpResp = r <= thres;
   end
   
-  if debug
+%% Plot histogram
+
+if debug
     % Plot threshold on histogram figure
-    figure(100); hold on;
+    y = ybackup;
+    tpRate = sum(stumpResp(y>0))/sum(y>0);
+    fpRate = sum(stumpResp(y==0))/sum(y==0);  
+    figure(2); hold on;
     ax = axis;
     plot([thres, thres], ax(3:4), 'k');
-    title('Hist. of Weak Classifier, Targ/Non (g/r), Threshold (k)');
+    title(sprintf('Hist. of Weak Classifier, Targ/Non (g/r), Err=%0.2f, TPR=%0.2f, FPR=%0.2f',err,tpRate,fpRate));
     pause(0.1);
   end
 

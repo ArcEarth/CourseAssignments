@@ -22,6 +22,7 @@ seed0 = seed;
 
 %%%%%%%%%%% Load eye and non-eye images %%%%%%%%%%%%%
 load('trainSet');
+load('adaFit');
 nTarg = size(eyeIm,2);
 nNon = size(nonIm, 2);
 testImSz = sizeIm;
@@ -56,8 +57,21 @@ if debug
   pause(0.1);
 end
 
-
 [pFeat.err, pFeat.thres, pFeat.parity, H] = ...
     trainStump(f(:), pFeat.abs, X, y, wghts, debug);
+
+for i = 1 : nFeatures
+    pF = featList(i);
+    f = buildGaussFeat(pF);
+    if debug
+      figure(1); clf; 
+      showIm(f);
+      pause(0.1);
+    end
+
+    [pFeat.err, pFeat.thres, pFeat.parity, H] = ...
+        trainStump(f, pF.abs, X, y, wghts, debug);  
+    pause;
+end
 
 % Blah blah...

@@ -17,7 +17,20 @@ function [resp] = evalBoosted(featList, nFeatures, X)
   %  resp - double 1 X K vector, with continuous valued strong classifier
   %         responses S_M in (3) in the handout, where M = nFeatures
     
-
-  resp = zeros(1, size(X,2));
-
+  F = zeros(nFeatures,size(X,1));
+  for i = 1:nFeatures
+    f = buildGaussFeat(featList(i));
+    F(i,:) = f(:);
+  end
+  featList = featList(1:nFeatures);
+  
+  P = [featList.parity]';
+  R = F * X;
+  absIdx = [featList.abs];
+  R(absIdx,:) = abs(R(absIdx,:));
+  R = bsxfun(@times,R,P);
+  Th = [featList.thres]' .* P;
+  H = bsxfun(@le,R,Th);
+  Alpha = [featList.alpha];
+  resp = Alpha * (2 .* H - 1);
   return;

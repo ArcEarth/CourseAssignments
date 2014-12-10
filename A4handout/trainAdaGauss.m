@@ -21,7 +21,7 @@ clear;
 
 debugFish = 0;          % Set to 1 or 2 to debug fishFeature
 debugTrainStump = 1;    % Set to 1 or 2 to debug trainStump
-maxFeatures = 20;       % Maximum number of features in strong classifier
+maxFeatures = 100;       % Maximum number of features in strong classifier
 maxErr = 0.4;           % Ignore any feature with err > maxErr
 greedyErr = 0.3;        % Use any feature found with err < greedyErr
 % This breaks out of the search over all features, and the selected
@@ -99,7 +99,10 @@ while nFeatures < maxFeatures
   end
   
   wghts = doAdaBoostStep(wghts, bestFeat.alpha, H, y);
-  
+  figure(4); clf;
+  wghtsEye = sum(bsxfun(@times,testTarg,wghts(1:nTarg)/sum(wghts(1:nTarg))),2);
+  showIm(reshape(wghtsEye,sizeIm));
+  title('Weighted Average Eye');
   % Check responses
   resp = evalBoosted(featList, nFeatures, X);
   
@@ -110,7 +113,7 @@ while nFeatures < maxFeatures
     [hNon, hxNon] = histo(resp(y==0), 101);
     hNon = hNon/(sum(hNon) * (hxNon(2) - hxNon(1)));
 
-    figure(2); clf;
+    figure(3); clf;
     plot(hxTarg, hTarg, 'g');
     hold on;
     plot(hxNon, hNon, 'r');
@@ -124,25 +127,46 @@ while nFeatures < maxFeatures
             sum(resp(y>0) >0)/sum(y>0), sum(resp(y==0) >0)/sum(y==0));
   end
   
+  pause;
 end
 
 
 save('adaFit.mat', 'nFeatures', 'featList');
+%% Plot DET Curves
+run('plotDET.m');
 
-pause;
-
-% The rest of the code is yours....
-
-clear
-load('adaFit');
-
-load('testSet');
-testImSz = sizeIm;
-
-%% %%%%%%%%%
-% Do brightness normalization
-% %%%%%%%%%%
-testTarg = rescaleImageVectors(testEyeIm);
-testNon = rescaleImageVectors(testNonIm);
-nTarg = size(testTarg,2);
-nNon = size(testNon, 2);
+% pause;
+% 
+% % Training Set
+% [hx,hy] = plotDET(featList, nFeatures, X, y);
+% figure(3); clf;
+% plot(hx, hy, 'g');
+% hold on;
+% 
+% % Test Set
+% load('trainSet');
+% nTarg = size(eyeIm,2);
+% nNon = size(nonIm, 2);
+% testTarg = rescaleImageVectors(eyeIm);
+% testNon = rescaleImageVectors(nonIm);
+% X = [testTarg testNon];
+% y = [ones(1,nTarg) zeros(1,nNon)];
+% 
+% [hx,hy] = plotDET(featList, nFeatures, X, y);
+% plot(hx, hy, 'r');
+% hold on;
+% 
+% 
+% clear
+% load('adaFit');
+% 
+% load('testSet');
+% testImSz = sizeIm;
+% 
+% %% %%%%%%%%%
+% % Do brightness normalization
+% % %%%%%%%%%%
+% testTarg = rescaleImageVectors(testEyeIm);
+% testNon = rescaleImageVectors(testNonIm);
+% nTarg = size(testTarg,2);
+% nNon = size(testNon, 2);
